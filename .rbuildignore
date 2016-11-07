@@ -1,0 +1,7 @@
+.git
+.vs
+.Rhistory
+*.rproj
+*.rxproj
+*.sln
+readme.md
