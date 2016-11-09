@@ -2,7 +2,9 @@
 
 export(barennblatt)
 export(define_xs)
+export(deposit_mass)
 export(distribute_mass)
+export(get_cb)
 export(lane)
 export(read_concentration)
 export(rouse)

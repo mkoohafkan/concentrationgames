@@ -4,16 +4,17 @@
 \alias{distribute_mass}
 \title{Distribute Mass Over Cross Section}
 \usage{
-distribute_mass(mass, H, xs, conc.fun)
+distribute_mass(mass, xs, H, b, conc.fun, ...)
 }
 \arguments{
 \item{mass}{The total mass of sediment to be distributed over the
 cross-section.}
 
-\item{H}{The water level. The channel invert elevation is assumed
-to be zero.}
-
 \item{xs}{The cross-section object.}
+
+\item{H}{The water level relative to the channel invert elevation.}
+
+\item{b}{The active layer height.}
 
 \item{conc.fun}{The function describing vertical concentration 
 gradient. If missing, a constant gradient is assumed.}

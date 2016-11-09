@@ -4,7 +4,7 @@
 \alias{define_xs}
 \title{Cross Section}
 \usage{
-define_xs(C.width, ROB.height, ROB.width, LOB.height, LOB.width)
+define_xs(C.height, C.width, ROB.height, ROB.width, LOB.height, LOB.width)
 }
 \arguments{
 \item{C.width}{The channel width.

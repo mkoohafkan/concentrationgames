@@ -6,27 +6,30 @@
 \alias{rouse}
 \alias{sscformula}
 \alias{tanaka}
-\title{Suspended Sediment Vertical Gradient Formulas.}
+\title{Suspended Sediment Vertical Gradient Formulas}
 \usage{
-rouse(z, H, crb, w, k, us)
+rouse(z, H, b, w, k, us, pizzuto = FALSE)
 
-lane(z, H, crb, w, k, us)
+lane(z, H, b, w, k, us)
 
-barennblatt(z, H, crb, w, k, us)
+barennblatt(z, H, b, w, k, us)
 
-tanaka(z, H, crb, w, k, us)
+tanaka(z, H, b, w, k, us)
 }
 \arguments{
 \item{z}{The depth at which to compute concentration.}
 
 \item{H}{The maximum water depth.}
 
-\item{crb}{The ratio of water depth to active layer depth \code{b/H}.}
+\item{b}{The active layer height.}
 
 \item{w}{The settling velocity.}
 
-\item{k}{The von Karmen constant.
-param us The shear velocity.}
+\item{k}{The von Karmen constant.}
+
+\item{us}{The shear velocity.}
+
+\item{pizzuto}{Logical: apply the correction from Pizzuto (1984).}
 }
 \description{
 Formulas for specifying the vertical gradient of suspended sediment.
