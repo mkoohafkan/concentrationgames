@@ -28,7 +28,7 @@ lane = function(z, H, b, w, k, us)
 
 #' @describeIn sscformula Barenblatt's formula
 #' @export 
-barennblatt = function(z, H, b, w, k, us)
+barenblatt = function(z, H, b, w, k, us)
   ((sqrt(1 - z / H) / sqrt(1 - b / H)) * ((1 - sqrt(1 - b / H)) /
     (1 - sqrt(1 - z / H)))) ^ (w / (k * us))
 

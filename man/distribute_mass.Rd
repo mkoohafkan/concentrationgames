@@ -4,7 +4,7 @@
 \alias{distribute_mass}
 \title{Distribute Mass Over Cross Section}
 \usage{
-distribute_mass(mass, xs, H, b, conc.fun, ...)
+distribute_mass(mass, xs, H, b, conc.fun = NULL, ...)
 }
 \arguments{
 \item{mass}{The total mass of sediment to be distributed over the

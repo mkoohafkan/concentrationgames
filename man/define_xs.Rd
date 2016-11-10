@@ -17,6 +17,6 @@ LOB.width The left bank floodplain width.}
 an object of class 'xs'.
 }
 \description{
-Define a cross-section.
+Define a rectangular compound cross section.
 }
 

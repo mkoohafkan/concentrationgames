@@ -20,7 +20,7 @@ read_concentration = function(f, classes) {
 
 #' Cross Section
 #' 
-#' Define a cross-section.
+#' Define a rectangular compound cross section.
 #'
 #' @param C.width The channel width.
 #' ROB.height The right bank height.
@@ -57,98 +57,72 @@ define_xs = function(C.height, C.width, ROB.height, ROB.width, LOB.height,
 #' @return The cross-section object with mass distribution.
 #'
 #' @export
-distribute_mass = function(mass, xs, H, b, conc.fun, ...) {
+distribute_mass = function(mass, xs, H, b, conc.fun = NULL, ...) {
 
   # divide cross section into vertical segments
-  ROB2LOB = xs$LOB.height - xs$ROB.height
-  LOB2ROB = -ROB2LOB
-  channel.only = c(b, min(xs$ROB.height, xs$LOB.height))
-  channel.and.ROB = (ROB2LOB > 0) * c(max(channel.only),
-    max(xs$LOB.height, xs$ROB.height))
-  channel.and.LOB = (LOB2ROB > 0) * c(max(channel.only),
-    max(xs$ROB.height, xs$LOB.height))
-  channel.and.banks = c(max(xs$ROB.height, xs$LOB.height), H)
+  C.lims = c(b, H)
+  ROB.lims = c(xs$ROB.height, H)
+  LOB.lims = c(xs$LOB.height, H)
 
-  # compute segment volumes
-  vol.C.only = (channel.only[2] - channel.only[1]) * xs$C.width
-  vol.C.and.ROB = (channel.and.ROB[2] - channel.and.ROB[1]) *
-    (xs$C.width + xs$ROB.width)
-  vol.C.and.LOB = (channel.and.LOB[2] - channel.and.LOB[1]) *
-    (xs$C.width + xs$LOB.width)
-  vol.C.and.banks = (channel.and.banks[2] - channel.and.banks[1]) *
-    (xs$C.width + xs$LOB.width + xs$ROB.width)
+  C.area = xs$C.width * (C.lims[2] - C.lims[1])
+  ROB.area = xs$ROB.width * (ROB.lims[2] - ROB.lims[1])
+  LOB.area = xs$LOB.width * (LOB.lims[2] - LOB.lims[1])
 
-  vol.C = (H - b) * xs$C.width
-  vol.ROB = (H - xs$ROB.height) * xs$ROB.width
-  vol.LOB = (H - xs$LOB.height) * xs$LOB.width
-
-  vol.total = vol.C + vol.ROB + vol.LOB
+  area = C.area + ROB.area + LOB.area
 
   # total average concentration
-  c.avg = mass / vol.total
-  # check concentration function and cb
-  if (missing(conc.fun)) {
+  c.avg = mass / area
+
+  # concentration function and cb
+  if (is.null(conc.fun)) {
     cb = c.avg
     conc.fun = function(z, ...)
       rep(1, length(z))
     } else {
       cb = get_cb(c.avg, conc.fun, H, b, ...)
     }
+
   # function to compute average concentration in a segment
   segment_conc = function(f, cb, lims, ...) {
     if (lims[2] != lims[1])
-      cb * integrate(f, lims[1], lims[2], ...)$value / (lims[2] - lims[1])
+      cb * integrate(f, lims[1], lims[2], ...)$value
     else
       0
   }
-  # compute mass in each segment
-  mass.C.only = segment_conc(conc.fun, cb, channel.only, H = H, b = b,
-    ...) * vol.C.only
-  mass.C.and.ROB = segment_conc(conc.fun, cb, channel.and.ROB, H = H,
-    b = b, ...) * vol.C.and.ROB
-  mass.C.and.LOB = segment_conc(conc.fun, cb, channel.and.LOB, H = H,
-    b = b, ...) * vol.C.and.LOB
-  mass.C.and.banks = segment_conc(conc.fun, cb, channel.and.banks,
-    H = H, b = b, ...) * vol.C.and.banks
-
-  # aggregate segments into Channel, ROB and LOB
-  frac.C.ROB = xs$C.width / (xs$C.width + xs$ROB.width)
-  frac.C.LOB = xs$C.width / (xs$C.width + xs$LOB.width)
-  frac.C.banks = xs$C.width / (xs$C.width + xs$ROB.width + xs$LOB.width)
-  frac.ROB.C = xs$ROB.width / (xs$C.width + xs$ROB.width)
-  frac.ROB.banks = xs$ROB.width / (xs$C.width + xs$ROB.width + xs$LOB.width)
-  frac.LOB.C = xs$LOB.width / (xs$C.width + xs$LOB.width)
-  frac.LOB.banks = xs$LOB.width / (xs$C.width + xs$ROB.width + xs$LOB.width)
-
-  C.mass = mass.C.only + mass.C.and.ROB * frac.C.ROB +
-    mass.C.and.LOB * frac.C.LOB + mass.C.and.banks * frac.C.banks
-  ROB.mass = mass.C.and.ROB * frac.ROB.C +
-    mass.C.and.banks * frac.ROB.banks
-  LOB.mass = mass.C.and.LOB * frac.LOB.C +
-    mass.C.and.banks * frac.LOB.banks
+  C.mass = segment_conc(conc.fun, cb, C.lims, H = H, b = b, ...) *
+    xs$C.width
+  ROB.mass = segment_conc(conc.fun, cb, ROB.lims, H = H, b = b, ...) *
+    xs$ROB.width
+  LOB.mass = segment_conc(conc.fun, cb, LOB.lims, H = H, b = b, ...) *
+    xs$LOB.width
 
   # correct masses to add up to total mass
   int.mass = C.mass + ROB.mass + LOB.mass
-  mass.factor = mass / int.mass
+  mf = mass / int.mass
 
   # return results
   c(xs, list(
-    C.mass = mass.factor * C.mass,
-    ROB.mass = mass.factor * ROB.mass,
-    LOB.mass = mass.factor * LOB.mass
+    C.mass = mf * C.mass,
+    ROB.mass = mf * ROB.mass,
+    LOB.mass = mf * LOB.mass
     ))
 
 }
 
-
+#' Overbank Deposion
+#' 
+#' Compute overbank depositon based on an exponential decay function.
+#'
+#' @param ob.width The overbank width.
+#' @param ob.nodes 
 ob_dist = function(ob.width, ob.nodes, decay) {
-  parint = function(Y, a = decay)
-    1 - exp( - a * Y)
-  decayfun = function(y, a = decay)
-    a * exp( - a * y)
-  decayfun(ob.nodes) / parint(ob.width)
+  
+  parint = 1 - exp( - decay * ob.width)
+  if(parint == 0)
+    rep(1/ob.width, length(ob.nodes))
+  else
+    decay * exp( - decay * ob.nodes) / parint  
 }
-
 
 #' Mass Deposition
 #'
@@ -191,7 +165,7 @@ deposit_mass = function(xs, dy, decay, truncate.dist) {
   LOB.all.m = rep(0, length(LOB.all))
   LOB.all.m[1:length(m.per.node.LOB)] = m.per.node.LOB
   
-  #trapz(ROB.nodes, m.per.node.ROB)
+  #print(trapz(ROB.nodes, m.per.node.ROB) - xs$ROB.mass)
 
   data.frame(
     label = c(
@@ -217,10 +191,8 @@ deposit_mass = function(xs, dy, decay, truncate.dist) {
   )
 }
 
-mass_to_bedchange = function(nd, p = 0.4, d = 2650){
-  dy = unique(nd$dy)
-  
-  f = dy/(d*p)  
+mass_to_bedchange = function(nd, p = 0.4, d = 2650){  
+  f = 1/(d*p)  
   nd["dz"] = nd$m*f
   nd
 }
